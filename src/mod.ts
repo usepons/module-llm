@@ -1,0 +1,17 @@
+export * from './providers/types.ts';
+export { OpenAIProvider } from './providers/openai.ts';
+export { AnthropicProvider } from './providers/anthropic.ts';
+export { DeepseekProvider } from './providers/deepseek.ts';
+export { OllamaProvider } from './providers/ollama.ts';
+export { ClaudeCodeProvider } from './providers/claude-code.ts';
+export { GitHubCopilotProvider } from './providers/github-copilot.ts';
+export { FailoverProvider } from './failover.ts';
+export { ProviderRegistry } from './registry.ts';
+export { AuthProfileManager } from './auth.ts';
+export type { AuthProfile } from './auth.ts';
+export { ModelRouter } from './router.ts';
+export type { ModelRouterConfig, ComplexityTier, RouteResult } from './router.ts';
+export { CostTracker } from './cost-tracker.ts';
+export type { UsageEntry, UsageSummary } from './cost-tracker.ts';
+export { runChatSession } from './chat/session.ts';
+export type { ChatSessionOptions } from './chat/session.ts';

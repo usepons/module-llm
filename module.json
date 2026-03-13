@@ -1,0 +1,16 @@
+{
+  "id": "llm",
+  "name": "LLM Services",
+  "version": "1.0.0",
+  "description": "Provider registry, model routing, auth profiles, cost tracking, and interactive chat",
+  "provides": ["providerRegistry", "authProfileManager", "model-router", "cost-tracker"],
+  "subscribes": ["llm:generate", "llm:stream:request"],
+  "optionalRequires": ["http-router"],
+  "priority": 5,
+  "configKey": "models",
+  "configSchema": "./src/config.schema.ts",
+  "configDependencies": ["models"],
+  "cli": {
+    "entrypoint": "cli.ts"
+  }
+}
