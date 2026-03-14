@@ -1,7 +1,7 @@
 {
   "id": "llm",
   "name": "LLM Services",
-  "version": "1.0.0",
+  "version": "0.2.2",
   "description": "Provider registry, model routing, auth profiles, cost tracking, and interactive chat",
   "provides": ["providerRegistry", "authProfileManager", "model-router", "cost-tracker"],
   "subscribes": ["llm:generate", "llm:stream:request"],
@@ -12,5 +12,31 @@
   "configDependencies": ["models"],
   "cli": {
     "entrypoint": "cli.ts"
+  },
+  "permissions": {
+    "net": [
+      "api.anthropic.com",
+      "api.openai.com",
+      "api.deepseek.com",
+      "api.githubcopilot.com",
+      "api.github.com",
+      "localhost"
+    ],
+    "read": ["."],
+    "write": ["."],
+    "env": [
+      "ANTHROPIC_API_KEY",
+      "COPILOT_GITHUB_TOKEN",
+      "GH_TOKEN",
+      "GITHUB_TOKEN"
+    ],
+    "run": ["gh", "claude"],
+    "services": ["http-router"],
+    "topics": [
+      "llm:generate",
+      "llm:stream:request",
+      "llm:stream:chunk",
+      "usage:updated"
+    ]
   }
 }
