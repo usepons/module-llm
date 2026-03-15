@@ -30,13 +30,10 @@
       "GH_TOKEN",
       "GITHUB_TOKEN"
     ],
-    "run": ["gh", "claude"],
+    "run": ["gh", "claude"]
+  },
+  "capabilities": {
     "services": ["http-router"],
-    "topics": [
-      "llm:generate",
-      "llm:stream:request",
-      "llm:stream:chunk",
-      "usage:updated"
-    ]
+    "topics": ["llm:generate", "llm:stream:request", "llm:stream:chunk", "usage:updated"]
   }
 }
