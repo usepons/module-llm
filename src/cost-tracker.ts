@@ -42,9 +42,8 @@ export class CostTracker {
   }
 
   setPersistence(workspacePath: string): void {
-    const dir = join(workspacePath, '.pons');
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    this.persistPath = join(dir, 'usage.json');
+    if (!existsSync(workspacePath)) mkdirSync(workspacePath, { recursive: true });
+    this.persistPath = join(workspacePath, 'usage.json');
   }
 
   setOnChange(cb: () => void): void {
@@ -56,6 +55,9 @@ export class CostTracker {
     try {
       const raw = readFileSync(this.persistPath, 'utf-8');
       this.entries = JSON.parse(raw) as UsageEntry[];
+      // Security: prune entries older than 90 days to prevent unbounded growth
+      const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
+      this.entries = this.entries.filter(e => e.timestamp >= cutoff);
     } catch {
       this.entries = [];
     }
@@ -82,6 +84,10 @@ export class CostTracker {
       agentId,
     };
     this.entries.push(entry);
+    // Security: cap entries to prevent unbounded memory growth
+    if (this.entries.length > 100_000) {
+      this.entries = this.entries.slice(-50_000);
+    }
     this.onChange?.();
     return entry;
   }

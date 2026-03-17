@@ -22,8 +22,8 @@
       "api.github.com",
       "localhost"
     ],
-    "read": ["."],
-    "write": ["."],
+    "read": [".", "~/.pons/"],
+    "write": [".", "~/.pons/"],
     "env": [
       "ANTHROPIC_API_KEY",
       "COPILOT_GITHUB_TOKEN",
