@@ -4,9 +4,11 @@ export class ClaudeCodeProvider implements LLMProvider {
   readonly id = 'claude-code';
   readonly name = 'Claude Code';
   private apiKey: string;
+  private enabled: boolean;
 
   constructor(config: ProviderConfig) {
     this.apiKey = config.apiKey || '';
+    this.enabled = (config as any).enabled === true;
   }
 
   static isAvailable(): boolean {
@@ -20,17 +22,20 @@ export class ClaudeCodeProvider implements LLMProvider {
   }
 
   async generateText(options: GenerateOptions): Promise<GenerateResult> {
+    if (!this.enabled) {
+      throw new Error('ClaudeCodeProvider is disabled. Set enabled: true in provider config to use it.');
+    }
     const lastMessage = options.messages[options.messages.length - 1];
     const prompt = lastMessage?.content ?? '';
 
-    const args = ['--print', '--output-format', 'json'];
+    const args = ['--print', '--output-format', 'json']; // PONS-001 safety: --print disables tool use and code execution
     if (options.system) {
       args.push('--system-prompt', options.system);
     }
     // if (options.maxTokens) {
     //   args.push('--max-tokens', String(options.maxTokens));
     // }
-    args.push(prompt);
+    args.push('--', prompt);
 
     const command = new Deno.Command('claude', {
       args,
