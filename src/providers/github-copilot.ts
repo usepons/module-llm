@@ -90,16 +90,17 @@ export class GitHubCopilotProvider implements LLMProvider {
         ...COPILOT_HEADERS,
         'Accept': 'application/json',
       },
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
-      const body = await response.text();
+      await response.text(); // consume body without exposing it
       // Fallback: try using the GitHub token directly (older setups)
       if (response.status === 404) {
         this.sessionToken = { token: githubToken, expiresAt: Date.now() + 30 * 60_000, refreshIn: 1800 };
         return githubToken;
       }
-      throw new Error(`GitHub Copilot token exchange failed (${response.status}): ${body}`);
+      throw new Error(`GitHub Copilot token exchange failed (HTTP ${response.status})`);
     }
 
     const data = await response.json() as { token: string; expires_at: number; refresh_in: number };
@@ -133,9 +134,13 @@ export class GitHubCopilotProvider implements LLMProvider {
           })),
         } : {}),
       }),
+      signal: AbortSignal.timeout(120_000),
     });
 
-    if (!response.ok) throw new Error(`GitHub Copilot error: ${response.status} ${await response.text()}`);
+    if (!response.ok) {
+      await response.text(); // consume body without exposing it
+      throw new Error(`GitHub Copilot error: HTTP ${response.status}`);
+    }
 
     const data = await response.json() as {
       choices: Array<{

@@ -5,8 +5,8 @@
  * and cost-tracker services via RPC.
  */
 
-import { ModuleRunner } from 'jsr:@pons/sdk@^0.2';
-import type { ModuleManifest } from 'jsr:@pons/sdk@^0.2';
+import { ModuleRunner } from 'jsr:@pons/sdk@^0.3';
+import type { ModuleManifest } from 'jsr:@pons/sdk@^0.3';
 import { ProviderRegistry } from './src/registry.ts';
 import { AuthProfileManager } from './src/auth.ts';
 import { ModelRouter } from './src/router.ts';
@@ -337,6 +337,14 @@ class LLMRunner extends ModuleRunner {
         const provider = this.providerRegistry.get(p.provider);
         if (!provider) throw new Error(`Provider "${p.provider}" not found`);
 
+        // Security: enforce cost limits before making LLM request
+        if (this.costTracker && !this.costTracker.isWithinDailyLimit()) {
+          throw new Error('Daily cost limit exceeded');
+        }
+        if (this.costTracker && !this.costTracker.isWithinMonthlyLimit()) {
+          throw new Error('Monthly cost limit exceeded');
+        }
+
         const result = await provider.generateText({
           model: p.model,
           messages: p.messages,
@@ -360,6 +368,14 @@ class LLMRunner extends ModuleRunner {
         const provider = this.providerRegistry.get(p.provider);
         if (!provider) throw new Error(`Provider "${p.provider}" not found`);
 
+        // Security: enforce cost limits before making LLM request
+        if (this.costTracker && !this.costTracker.isWithinDailyLimit()) {
+          throw new Error('Daily cost limit exceeded');
+        }
+        if (this.costTracker && !this.costTracker.isWithinMonthlyLimit()) {
+          throw new Error('Monthly cost limit exceeded');
+        }
+
         let text = '';
         let usage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
 
@@ -380,6 +396,17 @@ class LLMRunner extends ModuleRunner {
         }
 
         return { content: text, usage, model: p.model };
+      }
+
+      case 'embed': {
+        const p = params as { text: string | string[]; provider?: string; model?: string };
+        const texts = Array.isArray(p.text) ? p.text : [p.text];
+        const providerName = p.provider ?? this.providerRegistry.listProviders()[0];
+        if (!providerName) throw new Error('No provider available for embeddings');
+        const provider = this.providerRegistry.get(providerName);
+        if (!provider) throw new Error(`Provider "${providerName}" not found`);
+        // Embeddings are not yet implemented in provider — return stub error response
+        throw new Error(`Embeddings not yet implemented for provider "${providerName}"`);
       }
 
       case 'health':

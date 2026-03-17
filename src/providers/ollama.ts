@@ -1,4 +1,5 @@
 import type { LLMProvider, GenerateOptions, GenerateResult, StreamChunk, ModelInfo, ProviderConfig, Message, ToolCall } from './types.ts';
+import { validateProviderBaseUrl } from './url-validation.ts';
 
 interface OllamaChatMessage {
   role: string;
@@ -23,7 +24,7 @@ export class OllamaProvider implements LLMProvider {
   private baseUrl: string;
 
   constructor(config: ProviderConfig) {
-    this.baseUrl = (config.baseUrl || 'http://localhost:11434').replace(/\/$/, '');
+    this.baseUrl = validateProviderBaseUrl(config.baseUrl || 'http://localhost:11434');
   }
 
   async generateText(options: GenerateOptions): Promise<GenerateResult> {
@@ -43,9 +44,13 @@ export class OllamaProvider implements LLMProvider {
           ...(options.maxTokens ? { num_predict: options.maxTokens } : {}),
         },
       }),
+      signal: AbortSignal.timeout(120_000),
     });
 
-    if (!response.ok) throw new Error(`Ollama error: ${response.status} ${await response.text()}`);
+    if (!response.ok) {
+      await response.text(); // consume body
+      throw new Error(`Ollama error: HTTP ${response.status}`);
+    }
 
     const data = await response.json() as {
       message: OllamaChatMessage;
@@ -105,9 +110,10 @@ export class OllamaProvider implements LLMProvider {
           ...(options.maxTokens ? { num_predict: options.maxTokens } : {}),
         },
       }),
+      signal: AbortSignal.timeout(300_000),
     });
 
-    if (!response.ok || !response.body) throw new Error(`Ollama error: ${response.status}`);
+    if (!response.ok || !response.body) throw new Error(`Ollama streaming error: HTTP ${response.status}`);
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -150,7 +156,7 @@ export class OllamaProvider implements LLMProvider {
 
   async listModels(): Promise<ModelInfo[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/tags`);
+      const response = await fetch(`${this.baseUrl}/api/tags`, { signal: AbortSignal.timeout(10_000) });
       if (!response.ok) return [];
       const data = await response.json() as { models: Array<{ name: string; details?: { parameter_size?: string } }> };
       return (data.models || []).map(m => ({

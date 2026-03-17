@@ -1,4 +1,4 @@
-import type { Logger } from 'jsr:@pons/sdk@^0.2';
+import type { Logger } from 'jsr:@pons/sdk@^0.3';
 
 export interface AuthProfile {
   id: string;

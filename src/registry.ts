@@ -1,4 +1,4 @@
-import type { Logger } from 'jsr:@pons/sdk@^0.2';
+import type { Logger } from 'jsr:@pons/sdk@^0.3';
 import type { LLMProvider, ModelInfo, ProviderConfig } from './providers/types.ts';
 import { AnthropicProvider } from './providers/anthropic.ts';
 import { OpenAIProvider } from './providers/openai.ts';

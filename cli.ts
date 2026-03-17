@@ -4,7 +4,7 @@ import chalk from 'npm:chalk@^5';
 import { ProviderRegistry } from './src/registry.ts';
 import { runChatSession } from './src/chat/session.ts';
 import type { ProviderConfig } from './src/providers/types.ts';
-import type { Logger } from 'jsr:@pons/sdk@^0.2';
+import type { Logger } from 'jsr:@pons/sdk@^0.3';
 
 /**
  * Build a ProviderRegistry from config providers.

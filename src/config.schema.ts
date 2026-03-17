@@ -1,4 +1,4 @@
-import { defineConfigSchema, z } from "jsr:@pons/sdk@^0.2/config";
+import { defineConfigSchema, z } from "jsr:@pons/sdk@^0.3/config";
 
 const providerConfigSchema = z.object({
   apiKey: z.string().optional(),

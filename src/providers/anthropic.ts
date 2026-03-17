@@ -1,5 +1,6 @@
 import Anthropic from 'npm:@anthropic-ai/sdk@^0.39';
 import type { LLMProvider, GenerateOptions, GenerateResult, StreamChunk, ModelInfo, ProviderConfig, Message, ToolCall } from './types.ts';
+import { validateProviderBaseUrl } from './url-validation.ts';
 
 const ANTHROPIC_MODELS: ModelInfo[] = [
   { id: 'claude-opus-4-6', name: 'Claude Opus 4.6', provider: 'anthropic', contextWindow: 200000 },
@@ -15,7 +16,8 @@ export class AnthropicProvider implements LLMProvider {
   constructor(config: ProviderConfig) {
     this.client = new Anthropic({
       apiKey: config.apiKey,
-      ...(config.baseUrl ? { baseURL: config.baseUrl } : {}),
+      timeout: 120_000,
+      ...(config.baseUrl ? { baseURL: validateProviderBaseUrl(config.baseUrl) } : {}),
     });
   }
 

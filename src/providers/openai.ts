@@ -1,5 +1,6 @@
 import OpenAI from 'npm:openai@^4';
 import type { LLMProvider, GenerateOptions, GenerateResult, StreamChunk, ModelInfo, ProviderConfig, ToolCall } from './types.ts';
+import { validateProviderBaseUrl } from './url-validation.ts';
 
 export class OpenAIProvider implements LLMProvider {
   readonly id: string;
@@ -11,7 +12,8 @@ export class OpenAIProvider implements LLMProvider {
     this.name = name;
     this.client = new OpenAI({
       apiKey: config.apiKey,
-      ...(config.baseUrl ? { baseURL: config.baseUrl } : {}),
+      timeout: 120_000,
+      ...(config.baseUrl ? { baseURL: validateProviderBaseUrl(config.baseUrl) } : {}),
     });
   }
 
