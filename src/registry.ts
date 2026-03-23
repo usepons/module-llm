@@ -4,7 +4,6 @@ import { AnthropicProvider } from './providers/anthropic.ts';
 import { OpenAIProvider } from './providers/openai.ts';
 import { DeepseekProvider } from './providers/deepseek.ts';
 import { OllamaProvider } from './providers/ollama.ts';
-import { ClaudeCodeProvider } from './providers/claude-code.ts';
 import { GitHubCopilotProvider } from './providers/github-copilot.ts';
 
 type ProviderFactory = (config: ProviderConfig) => LLMProvider;
@@ -14,7 +13,6 @@ const BUILT_IN_FACTORIES: Record<string, ProviderFactory> = {
   openai: (c) => new OpenAIProvider(c),
   deepseek: (c) => new DeepseekProvider(c),
   ollama: (c) => new OllamaProvider(c),
-  'claude-code': (c) => new ClaudeCodeProvider(c),
   'github-copilot': (c) => new GitHubCopilotProvider(c),
 };
 

@@ -3,7 +3,7 @@
   "name": "LLM Services",
   "version": "0.2.2",
   "description": "Provider registry, model routing, auth profiles, cost tracking, and interactive chat",
-  "provides": ["providerRegistry", "authProfileManager", "model-router", "cost-tracker"],
+  "provides": ["llm", "providerRegistry", "authProfileManager", "model-router", "cost-tracker"],
   "subscribes": ["llm:generate", "llm:stream:request"],
   "optionalRequires": ["http-router"],
   "priority": 5,
@@ -26,9 +26,13 @@
     "write": [".", "~/.pons/"],
     "env": [
       "ANTHROPIC_API_KEY",
+      "ANTHROPIC_BASE_URL",
+      "ANTHROPIC_AUTH_TOKEN",
       "COPILOT_GITHUB_TOKEN",
       "GH_TOKEN",
-      "GITHUB_TOKEN"
+      "GITHUB_TOKEN",
+      "LOG_TOKENS",
+      "LOG_STREAM"
     ],
     "run": ["gh", "claude"]
   },

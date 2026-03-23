@@ -8,17 +8,42 @@ const ANTHROPIC_MODELS: ModelInfo[] = [
   { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', provider: 'anthropic', contextWindow: 200000 },
 ];
 
+/** Detect OAuth tokens (Claude Code subscription) by prefix */
+function isOAuthToken(key: string): boolean {
+  return key.startsWith('sk-ant-oat');
+}
+
 export class AnthropicProvider implements LLMProvider {
   readonly id = 'anthropic';
   readonly name = 'Anthropic';
   private client: Anthropic;
 
   constructor(config: ProviderConfig) {
-    this.client = new Anthropic({
-      apiKey: config.apiKey,
-      timeout: 120_000,
-      ...(config.baseUrl ? { baseURL: validateProviderBaseUrl(config.baseUrl) } : {}),
-    });
+    const key = config.apiKey || config.token || '';
+    const baseURL = config.baseUrl ? validateProviderBaseUrl(config.baseUrl) : undefined;
+
+    if (isOAuthToken(key)) {
+      // OAuth token (Claude Code subscription) — use authToken + required beta headers
+      this.client = new Anthropic({
+        apiKey: null as unknown as string,
+        authToken: key,
+        timeout: 120_000,
+        ...(baseURL ? { baseURL } : {}),
+        defaultHeaders: {
+          'accept': 'application/json',
+          'anthropic-beta': 'claude-code-20250219,oauth-2025-04-20',
+          'user-agent': 'pons-kernel/0.1.0',
+          'x-app': 'pons',
+        },
+      });
+    } else {
+      // Standard API key
+      this.client = new Anthropic({
+        apiKey: key,
+        timeout: 120_000,
+        ...(baseURL ? { baseURL } : {}),
+      });
+    }
   }
 
   async generateText(options: GenerateOptions): Promise<GenerateResult> {
@@ -75,7 +100,6 @@ export class AnthropicProvider implements LLMProvider {
       } : {}),
     });
 
-    // Track current tool_use block being streamed
     let currentToolId = '';
     let currentToolName = '';
     let currentToolArgs = '';
@@ -85,7 +109,6 @@ export class AnthropicProvider implements LLMProvider {
         yield { type: 'text', text: event.delta.text };
       }
 
-      // Tool use streaming
       if (event.type === 'content_block_start' && event.content_block.type === 'tool_use') {
         currentToolId = event.content_block.id;
         currentToolName = event.content_block.name;
@@ -134,18 +157,14 @@ export class AnthropicProvider implements LLMProvider {
 
   /**
    * Convert internal Message[] to Anthropic format.
-   * Anthropic requires: user/assistant roles only (no system),
-   * tool results as user messages with tool_result content blocks,
-   * assistant messages with tool_use content blocks for tool calls.
    */
   private buildMessages(messages: Message[]): Anthropic.MessageParam[] {
     const result: Anthropic.MessageParam[] = [];
 
     for (const m of messages) {
-      if (m.role === 'system') continue; // system is passed separately
+      if (m.role === 'system') continue;
 
       if (m.role === 'tool') {
-        // Anthropic: tool results are user messages with tool_result content blocks
         result.push({
           role: 'user',
           content: [{
@@ -155,7 +174,6 @@ export class AnthropicProvider implements LLMProvider {
           }],
         });
       } else if (m.role === 'assistant' && m.tool_calls?.length) {
-        // Assistant message with tool_use blocks
         const content: Anthropic.ContentBlockParam[] = [];
         if (m.content) {
           content.push({ type: 'text', text: m.content });

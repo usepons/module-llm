@@ -6,9 +6,9 @@ export class ClaudeCodeProvider implements LLMProvider {
   private apiKey: string;
   private enabled: boolean;
 
-  constructor(config: ProviderConfig) {
-    this.apiKey = config.apiKey || '';
-    this.enabled = (config as any).enabled === true;
+  constructor(config: ProviderConfig & { enabled?: boolean }) {
+    this.apiKey = config.apiKey || config.token || '';
+    this.enabled = config.enabled !== false;
   }
 
   static isAvailable(): boolean {
@@ -28,13 +28,10 @@ export class ClaudeCodeProvider implements LLMProvider {
     const lastMessage = options.messages[options.messages.length - 1];
     const prompt = lastMessage?.content ?? '';
 
-    const args = ['--print', '--output-format', 'json']; // PONS-001 safety: --print disables tool use and code execution
+    const args = ['--print', '--output-format', 'json'];
     if (options.system) {
       args.push('--system-prompt', options.system);
     }
-    // if (options.maxTokens) {
-    //   args.push('--max-tokens', String(options.maxTokens));
-    // }
     args.push('--', prompt);
 
     const command = new Deno.Command('claude', {

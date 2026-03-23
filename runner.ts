@@ -12,7 +12,6 @@ import { AuthProfileManager } from './src/auth.ts';
 import { ModelRouter } from './src/router.ts';
 import type { ModelRouterConfig } from './src/router.ts';
 import { CostTracker } from './src/cost-tracker.ts';
-import { ClaudeCodeProvider } from './src/providers/claude-code.ts';
 import type { LLMProvider, ProviderConfig, Message } from './src/providers/types.ts';
 
 /** Local config shape — only what this module reads. */
@@ -63,8 +62,6 @@ class LLMRunner extends ModuleRunner {
 
     if (configProviders) {
       for (const [id, entry] of Object.entries(configProviders)) {
-        if (id === 'claude-code') continue;
-
         const baseUrl = entry.baseUrl || entry.url;
 
         if (id === 'ollama' && baseUrl) {
@@ -77,22 +74,11 @@ class LLMRunner extends ModuleRunner {
           const defaults = STANDARD_DEFAULTS[id];
           const resolvedBaseUrl = baseUrl || defaults?.defaultBaseUrl;
           providerRegistry.register(id, {
-            apiKey: entry.apiKey,
-            token: entry.token,
+            apiKey: entry.apiKey || entry.token,
             ...(resolvedBaseUrl ? { baseUrl: resolvedBaseUrl } : {}),
           });
           registeredItems.push({ msg: `${id} (config)` });
         }
-      }
-    }
-
-    const claudeCodeCfg = configProviders?.['claude-code'];
-    if (claudeCodeCfg?.apiKey || ClaudeCodeProvider.isAvailable()) {
-      try {
-        providerRegistry.register('claude-code', { apiKey: claudeCodeCfg?.apiKey || '' });
-        registeredItems.push({ msg: `claude-code (${claudeCodeCfg?.apiKey ? 'config' : 'subscription'})` });
-      } catch (err) {
-        logger.warn({ err }, 'Claude Code provider init failed');
       }
     }
 
