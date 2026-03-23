@@ -1,8 +1,10 @@
 {
   "id": "llm",
   "name": "LLM Services",
-  "version": "0.2.2",
+  "version": "0.3.1",
   "description": "Provider registry, model routing, auth profiles, cost tracking, and interactive chat",
+  "runtime": "deno",
+  "entry": "runner.ts",
   "provides": ["llm", "providerRegistry", "authProfileManager", "model-router", "cost-tracker"],
   "subscribes": ["llm:generate", "llm:stream:request"],
   "optionalRequires": ["http-router"],

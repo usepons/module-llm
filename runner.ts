@@ -38,9 +38,9 @@ class LLMRunner extends ModuleRunner {
   readonly manifest: ModuleManifest = {
     id: 'llm',
     name: 'LLM Services',
-    version: '1.0.0',
+    version: '0.3.1',
     description: 'Provider registry, model routing, auth profiles, and cost tracking',
-    provides: ['providerRegistry', 'authProfileManager', 'model-router', 'cost-tracker'],
+    provides: ['llm', 'providerRegistry', 'authProfileManager', 'model-router', 'cost-tracker'],
     subscribes: ['llm:generate', 'llm:stream:request'],
     priority: 5,
   };
