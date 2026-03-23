@@ -5,6 +5,7 @@ import { OpenAIProvider } from './providers/openai.ts';
 import { DeepseekProvider } from './providers/deepseek.ts';
 import { OllamaProvider } from './providers/ollama.ts';
 import { GitHubCopilotProvider } from './providers/github-copilot.ts';
+import { AzureOpenAIProvider } from './providers/azure-openai.ts';
 
 type ProviderFactory = (config: ProviderConfig) => LLMProvider;
 
@@ -14,6 +15,7 @@ const BUILT_IN_FACTORIES: Record<string, ProviderFactory> = {
   deepseek: (c) => new DeepseekProvider(c),
   ollama: (c) => new OllamaProvider(c),
   'github-copilot': (c) => new GitHubCopilotProvider(c),
+  'azure-openai': (c) => new AzureOpenAIProvider(c),
 };
 
 export class ProviderRegistry {

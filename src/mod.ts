@@ -5,6 +5,8 @@ export { DeepseekProvider } from './providers/deepseek.ts';
 export { OllamaProvider } from './providers/ollama.ts';
 export { ClaudeCodeProvider } from './providers/claude-code.ts';
 export { GitHubCopilotProvider } from './providers/github-copilot.ts';
+export { AzureOpenAIProvider } from './providers/azure-openai.ts';
+export type { AzureOpenAIConfig } from './providers/azure-openai.ts';
 export { FailoverProvider } from './failover.ts';
 export { ProviderRegistry } from './registry.ts';
 export { AuthProfileManager } from './auth.ts';

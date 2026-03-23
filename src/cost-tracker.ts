@@ -9,6 +9,9 @@ const COST_PER_MILLION: Record<string, { input: number; output: number }> = {
   'gpt-4o': { input: 2.5, output: 10 },
   'gpt-4': { input: 30, output: 60 },
   'deepseek': { input: 0.14, output: 0.28 },
+  'gpt-4.1': { input: 2, output: 8 },
+  'o3': { input: 2, output: 8 },
+  'o4-mini': { input: 1.1, output: 4.4 },
   'default': { input: 1, output: 3 },
 };
 

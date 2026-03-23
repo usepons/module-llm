@@ -34,6 +34,9 @@ const STANDARD_DEFAULTS: Record<string, { defaultBaseUrl?: string }> = {
   deepseek: { defaultBaseUrl: 'https://api.deepseek.com/v1' },
 };
 
+/** Provider IDs that use non-standard config and are handled separately. */
+const CUSTOM_INIT_PROVIDERS = new Set(['ollama', 'azure-openai']);
+
 class LLMRunner extends ModuleRunner {
   readonly manifest: ModuleManifest = {
     id: 'llm',
@@ -67,6 +70,21 @@ class LLMRunner extends ModuleRunner {
         if (id === 'ollama' && baseUrl) {
           providerRegistry.register('ollama', { apiKey: entry.apiKey || 'ollama', baseUrl });
           registeredItems.push({ msg: `ollama (config)` });
+          continue;
+        }
+
+        if (id === 'azure-openai') {
+          const azureEntry = entry as ProviderConfig & { url?: string; endpoint?: string; apiVersion?: string; deployment?: string };
+          const endpoint = azureEntry.endpoint || baseUrl;
+          if ((azureEntry.apiKey || azureEntry.token) && endpoint) {
+            providerRegistry.register('azure-openai', {
+              apiKey: azureEntry.apiKey || azureEntry.token,
+              endpoint,
+              apiVersion: azureEntry.apiVersion,
+              deployment: azureEntry.deployment,
+            } as ProviderConfig);
+            registeredItems.push({ msg: `azure-openai (config)` });
+          }
           continue;
         }
 
