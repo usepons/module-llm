@@ -23,6 +23,7 @@
       "api.githubcopilot.com",
       "api.github.com",
       "*.openai.azure.com",
+      "openrouter.ai",
       "localhost"
     ],
     "read": [".", "~/.pons/"],
@@ -36,6 +37,12 @@
       "GITHUB_TOKEN",
       "AZURE_OPENAI_API_KEY",
       "AZURE_OPENAI_ENDPOINT",
+      "DEBUG",
+      "OPENROUTER_API_KEY",
+      "OPENAI_API_KEY",
+      "OPENAI_ORG_ID",
+      "OPENAI_PROJECT_ID",
+      "OPENAI_BASE_URL",
       "LOG_TOKENS",
       "LOG_STREAM"
     ],

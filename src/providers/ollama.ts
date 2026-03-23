@@ -24,7 +24,10 @@ export class OllamaProvider implements LLMProvider {
   private baseUrl: string;
 
   constructor(config: ProviderConfig) {
-    this.baseUrl = validateProviderBaseUrl(config.baseUrl || 'http://localhost:11434');
+    const raw = config.baseUrl || config.url || 'http://localhost:11434';
+    // Ollama is inherently a local/LAN provider — skip SSRF validation
+    // to allow private network addresses (e.g. 192.168.x.x)
+    this.baseUrl = raw.replace(/\/$/, '');
   }
 
   async generateText(options: GenerateOptions): Promise<GenerateResult> {
@@ -185,18 +188,27 @@ export class OllamaProvider implements LLMProvider {
     }));
   }
 
-  private buildMessages(options: GenerateOptions): Array<{ role: string; content: string }> {
-    const msgs: Array<{ role: string; content: string }> = [];
+  private buildMessages(options: GenerateOptions): OllamaChatMessage[] {
+    const msgs: OllamaChatMessage[] = [];
     if (options.system) {
       msgs.push({ role: 'system', content: options.system });
     }
     for (const m of options.messages) {
       if (m.role === 'tool') {
-        // Ollama expects tool results as role: 'tool'
+        // Ollama expects tool results as role: 'tool' with the content
         msgs.push({ role: 'tool', content: m.content });
       } else if (m.role === 'assistant' && m.tool_calls?.length) {
-        // Include text content if any, tool calls are implied by the prior response
-        msgs.push({ role: 'assistant', content: m.content || '' });
+        // Preserve tool_calls so Ollama can match tool results to calls
+        msgs.push({
+          role: 'assistant',
+          content: m.content || '',
+          tool_calls: m.tool_calls.map(tc => ({
+            function: {
+              name: tc.name,
+              arguments: tc.arguments,
+            },
+          })),
+        });
       } else {
         msgs.push({ role: m.role, content: m.content });
       }

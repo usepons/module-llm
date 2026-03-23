@@ -102,6 +102,9 @@ class LLMRunner extends ModuleRunner {
 
     this.providerRegistry = providerRegistry;
 
+    // ── Dynamic net permission requests for provider URLs not in manifest
+    await this.requestNetPermissionsForProviders(configProviders);
+
     // ── Auth Profile Manager
     const authProfileManager = new AuthProfileManager(logger);
     const authProfilesConfig = config.models?.authProfiles;
@@ -545,6 +548,53 @@ class LLMRunner extends ModuleRunner {
       type: 'done',
       usage,
     });
+  }
+
+  /**
+   * Check provider URLs against current net permissions.
+   * If any configured provider points to a host not in the manifest's
+   * net permissions, request dynamic permission from the kernel.
+   * The kernel will queue the request and restart this module after approval.
+   */
+  private async requestNetPermissionsForProviders(
+    configProviders?: Record<string, ProviderConfig & { url?: string }>,
+  ): Promise<void> {
+    if (!configProviders) return;
+
+    const declaredHosts = new Set(this.manifest.permissions?.net ?? []);
+    const missingHosts: string[] = [];
+
+    for (const entry of Object.values(configProviders)) {
+      const rawUrl = entry.baseUrl || entry.url;
+      if (!rawUrl) continue;
+      try {
+        const hostname = new URL(rawUrl).hostname;
+        // Check if any declared pattern matches this hostname
+        const covered = [...declaredHosts].some(pattern => {
+          if (pattern === hostname) return true;
+          // Simple wildcard: *.example.com matches sub.example.com
+          if (pattern.startsWith('*.') && hostname.endsWith(pattern.slice(1))) return true;
+          return false;
+        });
+        if (!covered) missingHosts.push(hostname);
+      } catch {
+        // invalid URL — skip
+      }
+    }
+
+    if (missingHosts.length === 0) return;
+
+    const unique = [...new Set(missingHosts)];
+    this.log('info', `Requesting net permissions for provider hosts: ${unique.join(', ')}`);
+
+    const result = await this.requestPermissions(
+      { net: unique },
+      `LLM providers require network access to: ${unique.join(', ')}`,
+    );
+
+    if (result.pending) {
+      this.log('warn', `Net permissions pending approval for: ${unique.join(', ')} — approve via CLI or UI`);
+    }
   }
 
   protected override async onShutdown(): Promise<void> {
